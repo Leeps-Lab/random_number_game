@@ -8,12 +8,22 @@
     }
 </style>
 {% endblock %}
+<!--
+    {% block title %}
+        {% if remaining_time > 0 %}
+            Processing task
+        {% else %}
+            Processing results
+        {% endif %}
+    {% endblock %}
+-->
+
 
 {% block title %}
     {% if remaining_time > 0 %}
-        Processing task
+    боловсруулах ажлууд
     {% else %}
-        Processing results
+    Тооцоолж байна
     {% endif %}
 {% endblock %}
 

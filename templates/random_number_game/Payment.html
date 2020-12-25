@@ -2,18 +2,21 @@
 {% load otree static %}
 {% load i18n %}
 
-{% block title %}
-{% blocktrans trimmed %}Final Page {% endblocktrans %}
-{% endblock %}
+{% block title %} Эцсийн хуудас {% endblock %}
 
 {% block content %}
+<!--
+    <div>{% blocktrans trimmed %} You've reached the end of the game. Your payoffs are below {% endblocktrans %}</div>
+-->
 
-<div>{% blocktrans trimmed %} You've reached the end of the game. Your payoffs are below {% endblocktrans %}</div>
+<div>Та тоглоомын төгсгөлд хүрлээ. Таны төлбөрийг доор харуулав</div>
 
 <table class="table" style="margin-top:20px; margin-bottom:10px">
     <th>
-        <td>{% blocktrans trimmed %}Stages{% endblocktrans %}</td>
-        <td>{% blocktrans trimmed %}Payoff{% endblocktrans %}</td>
+        <!--<td>{% blocktrans trimmed %}Stages{% endblocktrans %}</td>
+        <td>{% blocktrans trimmed %}Payoff{% endblocktrans %}</td>-->
+        <td>Үе шат</td>
+        <td>төлбөр</td>
     </th>
         <tr>
             <td></td>
@@ -31,19 +34,33 @@
             <td>{{ payoff_3 }}</td>
         </tr>
 </table>
-<p>
+<!--
+    <p>
     {% blocktrans trimmed %}Your total earnings are 28000 {% endblocktrans %}+ {{ player.payoff }} = {{ payoff_plus_fee }} and your 
     {% blocktrans trimmed %} randomly selected stage is {% endblocktrans %} {{ payment_stage }}
-</p>    
+</p> 
+-->
+
+<p>
+    Таны нийт орлого 28000 + {{ player.payoff }} = {{ payoff_plus_fee }}  санамсаргүй сонгогдсон үэ шат нь {{ payment_stage }}
+</p>   
+ 
 
 {% if treatment == 0 %}
 {% else %}
+<!--
     <p>
         {% blocktrans trimmed %}We will also donate {% endblocktrans %} {{ player.payoff }} , 
         {% blocktrans trimmed %}
         the equivalent amount of your performance 
         in the game, to the State Emergency Committee Covid-19 fund.
         {% endblocktrans %}
+    </p>
+-->
+    
+    <p>
+        бид хандив өгөх болно {{ player.payoff }} , 
+        тэй тэнцэх хэмжээний мѳнгийг бид УОКт хандив ѳргѳх болно
     </p>
 {% endif %}
 
