@@ -179,8 +179,8 @@ class Player(BasePlayer):
 
     _gender =  models.StringField(
         choices=[
-            _('Male'),
-            _('Female'),
+            [_('Male'), 'Эрэгтэй'],
+            [_('Female'), 'Эмэгтэй'],
         ],
         widget=widgets.RadioSelect,
         label=''
@@ -191,7 +191,7 @@ class Player(BasePlayer):
             2
         ],
         widget=widgets.RadioSelect,
-        label=_('Question: What payment treatment?')
+        label=_('Асуулт: Ямар төлбөрийн системийг сонгох вэ?')
     ) # 1 is Stage 1 and 2 is Stage 2
 
     payment_stage = models.IntegerField()
@@ -199,35 +199,35 @@ class Player(BasePlayer):
     #Survey Fields
     # Gender is already recorded
     _age =  models.IntegerField(
-        label=_('What is your age?')
+        label=_('Та хэдэн настай вэ?')
     )
     # Birth Place
     _birth_place = models.StringField(
-        label=_('What is your birth place?')
+        label=_('Таны төрсөн аймаг, хот юу вэ?')
     )
     #3. School Name (I have a list of schools and other option in Mongolian)
     _school = models.StringField(
-        label=_('What is your school?')
+        label=_('Танай сургуулийнг нэр юу вэ?')
     )
     #4. Year of School (1-6, other=type)
     _year_of_school = models.IntegerField(
-        label=_('What is your school year?')
+        label=_('Хэддүгээр курс вэ?')
     )
     #5 . Field of Study (I have a list of majors and other option to type)
     _major = models.StringField(
-        label=_('What is your field of study?')
+        label=_('Та ямар чиглэлээр сурдаг вэ?')
     )
     #6. How many brothers do you have?
     _brothers = models.IntegerField(
-        label=_('How many brothers do you have?')
+        label=_('Та хэдэн ах болон эрэгтэй дүүтэй вэ?')
     )
     #7 . How many sisters do you have?
     _sisters = models.IntegerField(
-        label=_('How many sisters do you have?')
+        label=_('Та хэдэн эгч болон эмэгтэй дүүтэй вэ?')
     )
     #8. Explain briefly the reason behind your choice in Stage 3 (short answer)
     _stage_3_reasoning =  models.StringField(
-        label=_('Explain briefly the reason behind your choice in Stage 3 (short answer)')
+        label=_('3-р шатны сонголтынхоо шалтгааныг товч тайлбарла (богино хариулт)')
     )
 
     def set_correct_answer(self, transcription):
