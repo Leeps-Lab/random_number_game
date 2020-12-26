@@ -22,10 +22,10 @@ class Constants(BaseConstants):
     num_rounds = 122 # 50 rounds per stage to make the respective page repeat itself 50 times + 2 rounds of practice
     # num_rounds = 8 # DEBUG num_rounds (stage rounds + practice rounds)
     num_rounds_practice = 2
-    timeout_practice = 20 # DEBUG timeout
-    # timeout_practice = 60
-    timeout_stage = 25 # DEBUG timeout
-    # timeout_stage = 3*60
+    # timeout_practice = 20 # DEBUG timeout
+    timeout_practice = 60
+    # timeout_stage = 25 # DEBUG timeout
+    timeout_stage = 3*60
 
 
 
