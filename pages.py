@@ -185,8 +185,14 @@ class ProcessingPage(Page):
         cond3 = round(2*(Constants.num_rounds - Constants.num_rounds_practice)/3) + Constants.num_rounds_practice + 1
         print(f"DEBUG: conditional round 3 = {cond3}")
         print(f"DEBUG: cond 3 = {self.round_number == round(2*(Constants.num_rounds - Constants.num_rounds_practice)/3) + Constants.num_rounds_practice + 1}")
-        if self.round_number == 1 or \
-           self.round_number == 1 + Constants.num_rounds_practice or \
+        
+        if self.round_number == 1:
+            print(f"DEBUG: correct_answers_s{self.group.stage}")
+            self.participant.vars[f'correct_answers_s{self.group.stage}'] = 0 # setting up the corr answ counter
+            self.participant.vars['expiry_time_s{self.group.stage}'] = time() + Constants.timeout_practice
+            print(f"DEBUG: expiry_time_s{self.group.stage} = {self.participant.vars['expiry_time_s{self.group.stage}']}")
+
+        elif self.round_number == 1 + Constants.num_rounds_practice or \
            self.round_number == round((Constants.num_rounds - Constants.num_rounds_practice)/3) \
            + Constants.num_rounds_practice + 1 or\
            self.round_number == round(2*(Constants.num_rounds - Constants.num_rounds_practice)/3) \
@@ -252,7 +258,7 @@ class SettingAnswers(Page):
 
     def before_next_page(self):
         self.player.set_correct_answer(self.player.transcription) # checking if the answer was correct
-        
+
 
 class ResultsWaitPage(WaitPage):
 
