@@ -19,13 +19,13 @@ This is a Lines Queueing project
 class Constants(BaseConstants):
     name_in_url = 'random_number_game'
     players_per_group = 4
-    num_rounds = 26 # 50 rounds per stage to make the respective page repeat itself 50 times + 2 rounds of practice
+    num_rounds = 92 # 50 rounds per stage to make the respective page repeat itself 50 times + 2 rounds of practice
     # num_rounds = 8 # DEBUG num_rounds (stage rounds + practice rounds)
     num_rounds_practice = 2
-    timeout_practice = 20 # DEBUG timeout
-    # timeout_practice = 60
-    timeout_stage = 25 # DEBUG timeout
-    # timeout_stage = 3*60
+    # timeout_practice = 20 # DEBUG timeout
+    timeout_practice = 60
+    # timeout_stage = 25 # DEBUG timeout
+    timeout_stage = 3*60
 
 
 
