@@ -70,6 +70,10 @@ class ChoicePage(Page):
     def is_displayed(self):
         return self.round_number == round(2*(Constants.num_rounds - Constants.num_rounds_practice)/3) \
                + Constants.num_rounds_practice + 1 # displays on beginning of third stage
+    
+    def vars_for_template(self):
+        print(f"DEBUG: treatment = {self.session.config['treatment']}")
+        return {'treatment': self.session.config["treatment"]}
 
 
 class Stage2WaitPage(WaitPage):
