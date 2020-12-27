@@ -19,13 +19,13 @@ This is a Lines Queueing project
 class Constants(BaseConstants):
     name_in_url = 'random_number_game'
     players_per_group = 4
-    num_rounds = 122 # 50 rounds per stage to make the respective page repeat itself 50 times + 2 rounds of practice
+    num_rounds = 26 # 50 rounds per stage to make the respective page repeat itself 50 times + 2 rounds of practice
     # num_rounds = 8 # DEBUG num_rounds (stage rounds + practice rounds)
     num_rounds_practice = 2
-    # timeout_practice = 20 # DEBUG timeout
-    timeout_practice = 60
-    # timeout_stage = 25 # DEBUG timeout
-    timeout_stage = 3*60
+    timeout_practice = 20 # DEBUG timeout
+    # timeout_practice = 60
+    timeout_stage = 25 # DEBUG timeout
+    # timeout_stage = 3*60
 
 
 
@@ -73,12 +73,40 @@ class Subsession(BaseSubsession):
                 print(f"DEBUG: new_id_matrix = {new_id_matrix}")
             self.set_group_matrix(new_id_matrix)
             print(f"DEBUG: new group matrix = {self.get_group_matrix()}") 
+
+
+            for group in self.get_groups():
+                print(f"DEBUG: assigning stage to group {group}")
+                group.stage =  2
+                print(f"DEBUG: group stage = {group.stage}")
+
         
         # keeping the same grouping for the rest of rounds
+        round_counter = round((Constants.num_rounds - Constants.num_rounds_practice)/3) \
+            + Constants.num_rounds_practice + 2
+        
         for subsession in self.in_rounds(round((Constants.num_rounds - Constants.num_rounds_practice)/3) \
             + Constants.num_rounds_practice + 2, Constants.num_rounds):
             subsession.group_like_round(round((Constants.num_rounds - Constants.num_rounds_practice)/3) \
             + Constants.num_rounds_practice + 1)
+
+            print(f"DEBUG: assigning stage for round {round_counter}")
+            print(f"DEBUG: subsession {subsession}")
+            # assigning the stage for newly created groups
+            for group in subsession.get_groups():
+                print(f"DEBUG: group {group}")
+                if round_counter <= round(2*(Constants.num_rounds - Constants.num_rounds_practice)/3) \
+                + Constants.num_rounds_practice:
+                    print(f"DEBUG: group stage (pre) = {group.stage}")
+                    group.stage = 2
+                    print(f"DEBUG: group stage (post) = {group.stage}")
+                else: 
+                    print(f"DEBUG: group stage (pre) = {group.stage}")
+                    group.stage = 3
+                    print(f"DEBUG: group stage (post) = {group.stage}")
+            
+            round_counter += 1
+                
 
     def creating_session(self):
         print(f"DEBUG: Executing creating session for round {self.round_number}")
@@ -91,6 +119,28 @@ class Subsession(BaseSubsession):
             else:
                 p._gender = "Female"
             print(f"DEBUG: Player's gender = {p._gender}")
+
+        # setting practice and 1st stage
+        print("DEBUG: executing stage assignment")
+        if self.round_number >= 1 and self.round_number <= Constants.num_rounds_practice:
+            print("DEBUG: executing practice stage assignment")
+            for group in self.get_groups():
+                group.stage = 0
+
+        elif self.round_number >= 1 + Constants.num_rounds_practice and \
+            self.round_number <= round((Constants.num_rounds - Constants.num_rounds_practice)/3) \
+                + Constants.num_rounds_practice:
+            print("DEBUG: executing stage 1 assignment")
+            for group in self.get_groups():
+                group.stage = 1
+        
+        elif self.round_number > round((Constants.num_rounds - Constants.num_rounds_practice)/3) \
+            + Constants.num_rounds_practice and \
+            self.round_number <= round(2*(Constants.num_rounds - Constants.num_rounds_practice)/3) \
+            + Constants.num_rounds_practice:            
+            print("DEBUG: executing stage 2 assignment")
+            for group in self.get_groups():
+                group.stage =  2
 
 
 class Group(BaseGroup):
@@ -240,29 +290,30 @@ class Player(BasePlayer):
         Output: None
         """
         # determining if answer is correct
-        if transcription == self.task_number:
+        print(f"DEBUG: self.task_number = {self.task_number}")
+        if transcription == self.task_number and self.task_number != None:
             self.answer_is_correct = 1
         else:
             self.answer_is_correct = 0
 
         # storing the number of correct answers
-        print(f"DEBUG: current round = {self.round_number}")
+        print(f"DEBUG: player {self.id_in_subsession} current round = {self.round_number}")
         if self.round_number >= 1 and self.round_number <= Constants.num_rounds_practice:
-            print(f"DEBUG: correct answers s0 = {self.participant.vars['correct_answers_s0']}")
-            print(f"DEBUG: answer is correct = {self.answer_is_correct}")
+            print(f"DEBUG: player {self.id_in_subsession} correct answers s0 = {self.participant.vars['correct_answers_s0']}")
+            print(f"DEBUG: player {self.id_in_subsession} answer is correct = {self.answer_is_correct}")
             self.participant.vars['correct_answers_s0'] += self.answer_is_correct  
             self._correct_answers = self.participant.vars['correct_answers_s0']
-            print(f"DEBUG: correct answers s0 += = {self.participant.vars['correct_answers_s0']}")
+            print(f"DEBUG: player {self.id_in_subsession} correct answers s0 += = {self.participant.vars['correct_answers_s0']}")
 
         elif self.round_number >= 1 + Constants.num_rounds_practice and \
             self.round_number <= round((Constants.num_rounds - Constants.num_rounds_practice)/3) \
             + Constants.num_rounds_practice:
             
-            print(f"DEBUG: correct answers s1 = {self.participant.vars['correct_answers_s1']}")
-            print(f"DEBUG: answer is correct = {self.answer_is_correct}")
+            print(f"DEBUG: player {self.id_in_subsession} correct answers s1 = {self.participant.vars['correct_answers_s1']}")
+            print(f"DEBUG: player {self.id_in_subsession} answer is correct = {self.answer_is_correct}")
             self.participant.vars['correct_answers_s1'] += self.answer_is_correct  
             self._correct_answers = self.participant.vars['correct_answers_s1']
-            print(f"DEBUG: correct answers s1 += = {self.participant.vars['correct_answers_s1']}")
+            print(f"DEBUG: player {self.id_in_subsession} correct answers s1 += = {self.participant.vars['correct_answers_s1']}")
 
         elif self.round_number > round((Constants.num_rounds - Constants.num_rounds_practice)/3) \
             + Constants.num_rounds_practice and \
