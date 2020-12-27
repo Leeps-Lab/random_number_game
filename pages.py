@@ -52,6 +52,7 @@ class Introduction(Page):
         return self.round_number == 1
 
     def vars_for_template(self):
+        print(f"DEBUG: treatment = {self.session.config['treatment']}")
         return {'treatment': self.session.config["treatment"]}
 
 class GenderPage(Page):
