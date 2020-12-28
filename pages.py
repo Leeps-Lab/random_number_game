@@ -304,7 +304,7 @@ class Results(Page):
         
 class Survey(Page):   
     form_model = 'player'
-    form_fields = ['_age', '_birth_place', '_school', '_year_of_school', '_major', '_brothers' , '_sisters', '_stage_3_reasoning']
+    form_fields = ['_gender', '_age', '_birth_place', '_school', '_year_of_school', '_major', '_brothers' , '_sisters', '_stage_3_reasoning']
 
     def is_displayed(self):
         return self.round_number == Constants.num_rounds

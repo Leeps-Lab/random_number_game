@@ -233,7 +233,7 @@ class Player(BasePlayer):
             [_('Female'), 'Эмэгтэй'],
         ],
         widget=widgets.RadioSelect,
-        label=''
+        label='Таны Хүйс (эр/эм)?'
     )
     _choice =  models.IntegerField(
         choices=[
