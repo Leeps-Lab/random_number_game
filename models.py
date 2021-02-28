@@ -280,6 +280,41 @@ class Player(BasePlayer):
         label=_('3-р шатны сонголтынхоо шалтгааныг товч тайлбарла (богино хариулт)')
     )
 
+    def live_sender(self, data):
+        """
+        This method is in charge of:
+
+        - Sending the respective image to the decision page
+        - Telling the decision page if player on practice stage
+        - Checking if the transcription submitted is correct
+        - Storing the total number of correct answers and images displayed
+        - Erasing the image displayed at beginning of the round
+
+        """
+        return_data = {} # dict with data to be used in live Decision page
+        return_data["practice_rounds"] = Constants.num_rounds_practice
+
+        #########
+        # generating the images
+        
+
+        #########
+        # checking whether player in practice stage
+        if self.round_number == 1: # 1st round = practice round
+            return_data["practice_stage"] = True
+        else:
+            return_data["practice_stage"] = False
+              
+        #########
+        # checking if transcription is correct
+        print(f"DEBUG: self.task_number = {self.task_number}")
+        if str(self.task_number) == self.transcription:
+            return_data["correct_transcription"] = True
+        else:
+            return_data["correct_transcription"] = False
+
+
+
     def set_correct_answer(self, transcription):
         """
         Verifies that the number inputted is correct and adds 

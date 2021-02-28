@@ -11,9 +11,47 @@
 
 {% block content %}
     <p>дугаар:</p>
-    <img src="data:image/png;base64,{{ encoded_image }}">
+    <div id="task_image"></div> 
+    <!-- <img src="data:image/png;base64,{{ encoded_image }}"> -->
     {% formfield player.transcription %}
     <p>
-    {% next_button %}
+    <!-- {% next_button %} -->
     </p>
+{% endblock %}
+
+{% scripts %}
+<script>
+    var current_image = 1;
+    var correct_answers = 0;
+
+    function liveRecv(data){
+        // increasing the correct answer counter if correct transcription
+        if (data["correct_transcription"]){
+                    correct_answers++;
+                    console.log(correct_answers); 
+            }
+
+        if (data["practice_stage"]){
+            // if two images have been displayed on practice mode
+            if (current_image == parseFloat(data["practice_rounds"])){
+                document.getElementById('form').submit()
+            }
+        }
+
+        // updating the image seen by the player
+        // document.getElementById('task_image').setAttribute('src', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==');
+        document.getElementById('task_image').setAttribute('src', data["next_image"]);
+
+        // updating the count of images displayed to player
+        current_image++;
+        console.log(current_image); 
+    }
+
+    // sending the transcription to our live functions in models.py
+    function submit_transcription() {
+        transcription = document.getElementById("transcript_input").value;
+        liveSend({"transcription": transcription})
+    }
+
+</script>
 {% endblock %}

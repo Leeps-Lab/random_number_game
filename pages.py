@@ -105,60 +105,6 @@ class ProcessingPage(Page):
         # creating the img file
         writeText(player.task_number, f'random_number_game/static/{player.task_number_path}.png')
 
-        # assigning 2nd and 3rd stage
-        # print("DEBUG: executing stage assignment")
-        # if self.round_number >= 1 and self.round_number <= Constants.num_rounds_practice:
-        #     print("DEBUG: executing practice stage assignment")
-        #     self.group.stage = 0
-
-        # elif self.round_number >= 1 + Constants.num_rounds_practice and \
-        #     self.round_number <= round((Constants.num_rounds - Constants.num_rounds_practice)/3) \
-        #         + Constants.num_rounds_practice:
-            
-        #     print("DEBUG: executing stage 1 assignment")
-        #     self.group.stage = 1
-        
-        # if self.round_number > round((Constants.num_rounds - Constants.num_rounds_practice)/3) \
-        #     + Constants.num_rounds_practice and \
-        #     self.round_number <= round(2*(Constants.num_rounds - Constants.num_rounds_practice)/3) \
-        #     + Constants.num_rounds_practice:    
-        #     print("DEBUG: executing stage 2 assignment")
-        #     self.group.stage = 2
-
-        # elif self.round_number > round(2*(Constants.num_rounds - Constants.num_rounds_practice)/3) \
-        #     + Constants.num_rounds_practice:
-        #     print("DEBUG: executing stage 3 assignment")
-        #     self.group.stage = 3
-
-        # # timeout for multiple pages that restarts at beginning of practice stage
-        # if self.round_number == 1:
-        #     print("DEBUG: correct_answers practice stage")
-        #     self.participant.vars[f'correct_answers_s{self.group.stage}'] = 0 # setting up the corr answ counter
-        #     self.participant.vars['expiry_time'] = time() + Constants.timeout_practice
-
-        # timeout for multiple pages that restarts at beginning of each stage
-        # print(f"DEBUG: round = {self.round_number}")
-        # print(f"DEBUG: conditional round 1 = {1 + Constants.num_rounds_practice}")
-        # cond1 = self.round_number == 1 + Constants.num_rounds_practice
-        # print(f"DEBUG: cond 1 = {cond1}")
-        # cond2 = self.round_number == round((Constants.num_rounds - Constants.num_rounds_practice)/3) + Constants.num_rounds_practice + 1
-        # print(f"DEBUG: conditional round 2 = {round((Constants.num_rounds - Constants.num_rounds_practice)/3) + Constants.num_rounds_practice + 1}")
-        # print(f"DEBUG: cond 2 = {cond2}")
-        # cond3 = round(2*(Constants.num_rounds - Constants.num_rounds_practice)/3) + Constants.num_rounds_practice + 1
-        # print(f"DEBUG: conditional round 3 = {cond3}")
-        # print(f"DEBUG: cond 3 = {self.round_number == round(2*(Constants.num_rounds - Constants.num_rounds_practice)/3) + Constants.num_rounds_practice + 1}")
-        # if self.round_number == 1 or \
-        #    self.round_number == 1 + Constants.num_rounds_practice or \
-        #    self.round_number == round((Constants.num_rounds - Constants.num_rounds_practice)/3) \
-        #    + Constants.num_rounds_practice + 1 or\
-        #    self.round_number == round(2*(Constants.num_rounds - Constants.num_rounds_practice)/3) \
-        #     + Constants.num_rounds_practice + 1:
-
-        #     print(f"DEBUG: correct_answers_s{self.group.stage}")
-        #     self.participant.vars[f'correct_answers_s{self.group.stage}'] = 0 # setting up the corr answ counter
-        #     self.participant.vars['expiry_time_s{self.group.stage}'] = time() + Constants.timeout_stage
-        #     print(f"DEBUG: expiry_time_s{self.group.stage} = {self.participant.vars['expiry_time_s{self.group.stage}']}")
-
         # erasing file if no time remaining
         #TODO: look for a ram efficient way to create and erase images
         if self.round_number > 1:
