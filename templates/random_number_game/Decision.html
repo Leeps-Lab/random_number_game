@@ -11,9 +11,12 @@
 
 {% block content %}
     <p>дугаар:</p>
+    <!-- Image inserted with javascript -->
     <div id="task_image"></div> 
-    <!-- <img src="data:image/png;base64,{{ encoded_image }}"> -->
-    {% formfield player.transcription %}
+    
+    <input id="transcript_input" />
+    <button type="button" onclick="submit_transcription()">Submit transcription</button>
+
     <p>
     <!-- {% next_button %} -->
     </p>
@@ -21,7 +24,7 @@
 
 {% scripts %}
 <script>
-    var current_image = 1;
+    var round_number = 1;
     var correct_answers = 0;
 
     function liveRecv(data){
@@ -29,28 +32,30 @@
         if (data["correct_transcription"]){
                     correct_answers++;
                     console.log(correct_answers); 
+                    liveSend({"correct_answers": correct_answers});            
             }
 
         if (data["practice_stage"]){
             // if two images have been displayed on practice mode
-            if (current_image == parseFloat(data["practice_rounds"])){
+            if (round_number == parseFloat(data["practice_rounds"])){
                 document.getElementById('form').submit()
             }
         }
 
         // updating the image seen by the player
         // document.getElementById('task_image').setAttribute('src', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==');
-        document.getElementById('task_image').setAttribute('src', data["next_image"]);
-
-        // updating the count of images displayed to player
-        current_image++;
-        console.log(current_image); 
+        document.getElementById('task_image').setAttribute('src', data["image"]);
     }
 
     // sending the transcription to our live functions in models.py
     function submit_transcription() {
         transcription = document.getElementById("transcript_input").value;
-        liveSend({"transcription": transcription})
+        liveSend({"transcription": transcription, "round_number": round_number})
+        
+        // updating the count of images displayed to player
+        round_number++;
+        console.log(round_number); 
+        liveSend({"total_answers": total_answers});
     }
 
 </script>

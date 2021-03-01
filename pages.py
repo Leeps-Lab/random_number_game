@@ -68,8 +68,7 @@ class ChoicePage(Page):
     form_fields = ['_choice']
 
     def is_displayed(self):
-        return self.round_number == round(2*(Constants.num_rounds - Constants.num_rounds_practice)/3) \
-               + Constants.num_rounds_practice + 1 # displays on beginning of third stage
+        return self.round_number == 4 # displays on beginning of third stage
     
     def vars_for_template(self):
         print(f"DEBUG: treatment = {self.session.config['treatment']}")
@@ -87,8 +86,7 @@ class Stage2WaitPage(WaitPage):
     after_all_players_arrive = 'group_assignment' # players will be assigned into groups of 2 men and 2 women
 
     def is_displayed(self):
-        return self.round_number == round((Constants.num_rounds - Constants.num_rounds_practice)/3) \
-            + Constants.num_rounds_practice + 1 # displays on beginning of second stage
+        return self.round_number == 3 # displays on beginning of second stage
 
 
 class ProcessingPage(Page):
@@ -217,10 +215,7 @@ class ResultsWaitPage(WaitPage):
         self.group.set_payoffs()
 
     def is_displayed(self):
-        return self.round_number == round((Constants.num_rounds - Constants.num_rounds_practice)/3) \
-               + Constants.num_rounds_practice or \
-               self.round_number == round(2*(Constants.num_rounds - Constants.num_rounds_practice)/3) \
-               + Constants.num_rounds_practice 
+        return self.round_number > 1 & self.round_number < 4 # stage 1 and 2
 
 
 class FinalProcessingPage(Page):
@@ -234,14 +229,6 @@ class FinalProcessingPage(Page):
 
 
 class Results(Page):
-
-    def is_displayed(self):
-        return self.round_number == Constants.num_rounds_practice or \
-               self.round_number == round((Constants.num_rounds - Constants.num_rounds_practice)/3) \
-               + Constants.num_rounds_practice or \
-               self.round_number == round(2*(Constants.num_rounds - Constants.num_rounds_practice)/3) \
-               + Constants.num_rounds_practice or \
-               self.round_number == Constants.num_rounds    
 
     def vars_for_template(self):
         return{
@@ -261,10 +248,8 @@ class Payment(Page):
         return self.round_number == Constants.num_rounds
     
     def vars_for_template(self):
-        payoff_1 = self.player.in_round(round((Constants.num_rounds - Constants.num_rounds_practice)/3) \
-               + Constants.num_rounds_practice).payoff_stage_1
-        payoff_2 = self.player.in_round(round(2*(Constants.num_rounds - Constants.num_rounds_practice)/3) \
-               + Constants.num_rounds_practice).payoff_stage_2
+        payoff_1 = self.player.in_round(2).payoff_stage_1
+        payoff_2 = self.player.in_round(3).payoff_stage_2
         payoff_3 = self.player.in_round(Constants.num_rounds).payoff_stage_3
 
         return {
@@ -281,9 +266,9 @@ page_sequence = [
 #    GenderPage,
     ChoicePage,
     Stage2WaitPage,
-    ProcessingPage,
+    # ProcessingPage,
     Decision,
-    SettingAnswers,
+    # SettingAnswers,
     ResultsWaitPage,
     FinalProcessingPage,
     Results,
