@@ -5,48 +5,14 @@ from .models import Constants
 from datetime import timedelta
 from operator import concat
 
+from .text_to_png import writeText
 from django.utils.html import format_html
 
-from PIL import Image, ImageDraw, ImageFont
 from time import time
 from os import remove
 from base64 import b64encode
 
-def writeText(text, fileName):
-    """"
-    This method generates the image version of an inputted text
-    and saves it to fileName
-    
-    Input: text to be transcripted into the image, name of the output img file
-    Output: None
-    """
-
-    image = Image.open('random_number_game/background.png')
-    image = image.resize((250, 50))
-    image.save('random_number_game/background.png')
-    draw = ImageDraw.Draw(image)
-    font = ImageFont.truetype('random_number_game/Roboto-Regular.ttf', size=19)
-    imageChars = 100
-    numLines = len(text) / imageChars
-    numLines = math.ceil(numLines)
-    lines = []
-
-    for i in range(numLines):
-        if(imageChars * (i + 1) < len(text)):
-            lines.append(text[imageChars * i : imageChars * (i+1)])
-        else:
-            lines.append(text[imageChars * i : len(text)])
-
-    for i in range(numLines):
-        (x, y) = (10, 20 * i)
-        message = lines[i]
-        print("Message is: ", message)
-        color = 'rgb(0, 0, 0)' # black color
-        draw.text((x, y), message, fill=color, font=font)
-
-    image.save(fileName) # stores the image on a specified folder
-
-
+  
 class Introduction(Page):
     def is_displayed(self):
         return self.round_number == 1
@@ -54,6 +20,20 @@ class Introduction(Page):
     def vars_for_template(self):
         print(f"DEBUG: treatment = {self.session.config['treatment']}")
         return {'treatment': self.session.config["treatment"]}
+    
+    def before_next_page(self):
+        ##### creating first image of stage
+        task_number = self.player.task_number_method()
+        id_in_subsession = self.player.id_in_subsession
+        
+        # name of random number image file
+        task_number_path = "random_number_game/" + \
+                            f"task_number_player_{id_in_subsession}_{1}"
+        print("current task_number_path", task_number_path)
+
+        # creating the img file
+        writeText(task_number, f'random_number_game/static/{task_number_path}.png')
+
 
 class GenderPage(Page):
     form_model = 'player'
@@ -89,110 +69,138 @@ class Stage2WaitPage(WaitPage):
         return self.round_number == 3 # displays on beginning of second stage
 
 
-class ProcessingPage(Page):
-    timeout_seconds = 0.5 #TODO: test if non-integer timeouts work
+# class ProcessingPage(Page):
+#     timeout_seconds = 0.5 #TODO: test if non-integer timeouts work
 
-    def before_next_page(self):
-        # creating the number images and storing their commands to display on page
-        player = self.player
-        player.task_number = self.player.task_number_method()
-        # name of random number image file
-        id_in_subsession = self.player.id_in_subsession
-        player.task_number_path = "random_number_game/" + \
-                            f"task_number_player_{id_in_subsession}_{self.round_number}"
-        # creating the img file
-        writeText(player.task_number, f'random_number_game/static/{player.task_number_path}.png')
+#     def before_next_page(self):
+#         # creating the number images and storing their commands to display on page
+#         player = self.player
+#         player.task_number = self.player.task_number_method()
+#         # name of random number image file
+#         id_in_subsession = self.player.id_in_subsession
+#         player.task_number_path = "random_number_game/" + \
+#                             f"task_number_player_{id_in_subsession}_{self.round_number}"
+#         # creating the img file
+#         writeText(player.task_number, f'random_number_game/static/{player.task_number_path}.png')
 
-        # erasing file if no time remaining
-        #TODO: look for a ram efficient way to create and erase images
-        if self.round_number > 1:
-            remaining_time = self.participant.vars['expiry_time_s{self.group.stage}'] - time()
-            if remaining_time <= 0:
-                file_to_erase = "random_number_game/static/" + self.player.task_number_path + ".png"
-                print(f"DEBUG: file_to_erase = {file_to_erase}")
-                remove(file_to_erase)
+#         # erasing file if no time remaining
+#         #TODO: look for a ram efficient way to create and erase images
+#         if self.round_number > 1:
+#             remaining_time = self.participant.vars['expiry_time_s{self.group.stage}'] - time()
+#             if remaining_time <= 0:
+#                 file_to_erase = "random_number_game/static/" + self.player.task_number_path + ".png"
+#                 print(f"DEBUG: file_to_erase = {file_to_erase}")
+#                 remove(file_to_erase)
 
-                    # # updating the correct answers when no remaining time
-                    # self.player.set_correct_answer(self.player.transcription)
+#                     # # updating the correct answers when no remaining time
+#                     # self.player.set_correct_answer(self.player.transcription)
 
-    def vars_for_template(self):
-        if self.round_number > 1:
-            remaining_time = self.participant.vars['expiry_time_s{self.group.stage}'] - time()
-        else:
-            remaining_time = 10 # arbitrary value in order to make this code run
-        return {"remaining_time": remaining_time}
+#     def vars_for_template(self):
+#         if self.round_number > 1:
+#             remaining_time = self.participant.vars['expiry_time_s{self.group.stage}'] - time()
+#         else:
+#             remaining_time = 10 # arbitrary value in order to make this code run
+#         return {"remaining_time": remaining_time}
 
-    def is_displayed(self):
-        # avoid displaying the processing page if no remaining time
-        print(f"DEBUG: round = {self.round_number}")
-        print(f"DEBUG: conditional round 1 = {1 + Constants.num_rounds_practice}")
-        cond1 = self.round_number == 1 + Constants.num_rounds_practice
-        print(f"DEBUG: cond 1 = {cond1}")
-        cond2 = self.round_number == round((Constants.num_rounds - Constants.num_rounds_practice)/3) + Constants.num_rounds_practice + 1
-        print(f"DEBUG: conditional round 2 = {round((Constants.num_rounds - Constants.num_rounds_practice)/3) + Constants.num_rounds_practice + 1}")
-        print(f"DEBUG: cond 2 = {cond2}")
-        cond3 = round(2*(Constants.num_rounds - Constants.num_rounds_practice)/3) + Constants.num_rounds_practice + 1
-        print(f"DEBUG: conditional round 3 = {cond3}")
-        print(f"DEBUG: cond 3 = {self.round_number == round(2*(Constants.num_rounds - Constants.num_rounds_practice)/3) + Constants.num_rounds_practice + 1}")
+#     def is_displayed(self):
+#         # avoid displaying the processing page if no remaining time
+#         print(f"DEBUG: round = {self.round_number}")
+#         print(f"DEBUG: conditional round 1 = {1 + Constants.num_rounds_practice}")
+#         cond1 = self.round_number == 1 + Constants.num_rounds_practice
+#         print(f"DEBUG: cond 1 = {cond1}")
+#         cond2 = self.round_number == round((Constants.num_rounds - Constants.num_rounds_practice)/3) + Constants.num_rounds_practice + 1
+#         print(f"DEBUG: conditional round 2 = {round((Constants.num_rounds - Constants.num_rounds_practice)/3) + Constants.num_rounds_practice + 1}")
+#         print(f"DEBUG: cond 2 = {cond2}")
+#         cond3 = round(2*(Constants.num_rounds - Constants.num_rounds_practice)/3) + Constants.num_rounds_practice + 1
+#         print(f"DEBUG: conditional round 3 = {cond3}")
+#         print(f"DEBUG: cond 3 = {self.round_number == round(2*(Constants.num_rounds - Constants.num_rounds_practice)/3) + Constants.num_rounds_practice + 1}")
         
-        if self.round_number == 1:
-            print(f"DEBUG: correct_answers_s{self.group.stage}")
-            self.participant.vars[f'correct_answers_s{self.group.stage}'] = 0 # setting up the corr answ counter
-            self.participant.vars['expiry_time_s{self.group.stage}'] = time() + Constants.timeout_practice
-            print(f"DEBUG: expiry_time_s{self.group.stage} = {self.participant.vars['expiry_time_s{self.group.stage}']}")
+#         if self.round_number == 1:
+#             print(f"DEBUG: correct_answers_s{self.group.stage}")
+#             self.participant.vars[f'correct_answers_s{self.group.stage}'] = 0 # setting up the corr answ counter
+#             self.participant.vars['expiry_time_s{self.group.stage}'] = time() + Constants.timeout_practice
+#             print(f"DEBUG: expiry_time_s{self.group.stage} = {self.participant.vars['expiry_time_s{self.group.stage}']}")
 
-        elif self.round_number == 1 + Constants.num_rounds_practice or \
-           self.round_number == round((Constants.num_rounds - Constants.num_rounds_practice)/3) \
-           + Constants.num_rounds_practice + 1 or\
-           self.round_number == round(2*(Constants.num_rounds - Constants.num_rounds_practice)/3) \
-            + Constants.num_rounds_practice + 1:
+#         elif self.round_number == 1 + Constants.num_rounds_practice or \
+#            self.round_number == round((Constants.num_rounds - Constants.num_rounds_practice)/3) \
+#            + Constants.num_rounds_practice + 1 or\
+#            self.round_number == round(2*(Constants.num_rounds - Constants.num_rounds_practice)/3) \
+#             + Constants.num_rounds_practice + 1:
 
-            print(f"DEBUG: correct_answers_s{self.group.stage}")
-            self.participant.vars[f'correct_answers_s{self.group.stage}'] = 0 # setting up the corr answ counter
-            self.participant.vars['expiry_time_s{self.group.stage}'] = time() + Constants.timeout_stage
-            print(f"DEBUG: expiry_time_s{self.group.stage} = {self.participant.vars['expiry_time_s{self.group.stage}']}")
+#             print(f"DEBUG: correct_answers_s{self.group.stage}")
+#             self.participant.vars[f'correct_answers_s{self.group.stage}'] = 0 # setting up the corr answ counter
+#             self.participant.vars['expiry_time_s{self.group.stage}'] = time() + Constants.timeout_stage
+#             print(f"DEBUG: expiry_time_s{self.group.stage} = {self.participant.vars['expiry_time_s{self.group.stage}']}")
 
-        if self.round_number > 1:
-            remaining_time = self.participant.vars['expiry_time_s{self.group.stage}'] - time()
-            if remaining_time <= 0:                
-                # avoiding the display of this page if no time remaining
-                return False
-            else:
-                return True
-        else:
-            return True
+#         if self.round_number > 1:
+#             remaining_time = self.participant.vars['expiry_time_s{self.group.stage}'] - time()
+#             if remaining_time <= 0:                
+#                 # avoiding the display of this page if no time remaining
+#                 return False
+#             else:
+#                 return True
+#         else:
+#             return True
 
 
 class Decision(Page):
-    form_model = "player"
-    form_fields = ['transcription']
+    # form_model = "player"
+    # form_fields = ['transcription']
 
-    def get_timeout_seconds(self):
-        return self.participant.vars['expiry_time_s{self.group.stage}'] - time() # updating the time each time the page is displayed
+    live_method = "live_sender"
 
-    def is_displayed(self):
-        remaining_time = self.participant.vars['expiry_time_s{self.group.stage}'] - time()
-        print(f"DEBUG: remaining time stage {self.group.stage} = {remaining_time}")
-        return remaining_time > 0 # display only if there is time left
-
-    def before_next_page(self):
-        # erasing file if still time on the clock, but round task finished
-        file_to_erase = "random_number_game/static/" + self.player.task_number_path + ".png"
-        print(f"DEBUG: file_to_erase = {file_to_erase}")
-        remove(file_to_erase)
-        self.player.set_correct_answer(self.player.transcription) # checking if the answer was correct
-
-    def vars_for_template(self):
-        time_expired = (self.participant.vars['expiry_time_s{self.group.stage}'] - time() <= 0)
-        print(f"DEBUG: time_expired = {time_expired}")
+    def before_next_page(self):    
+        ##### creating first image of stage
+        task_number = self.player.task_number_method()
+        id_in_subsession = self.player.id_in_subsession
         
-        # encoding the image that will be displayed
-        with open("random_number_game/static/" + self.player.task_number_path + ".png", "rb") as image_file:
-            self.player.encoded_image = b64encode(image_file.read()).decode('utf-8')
+        # name of random number image file
+        task_number_path = "random_number_game/" + \
+                            f"task_number_player_{id_in_subsession}_{1}"
+        print("current task_number_path", task_number_path)
 
-        # using a var for template to display the encoded image
-        return {"encoded_image": self.player.encoded_image,
-                "time_expired": time_expired}
+        # creating the img file
+        writeText(task_number, f'random_number_game/static/{task_number_path}.png')
+
+
+    # def get_timeout_seconds(self):
+    #     # getting expiry time
+    #     if self.round_number == 1:
+    #         expiry_time = Constants.timeout_practice
+    #     else:
+    #         expiry_time = Constants.timeout_stage
+
+    #     return expiry_time # updating the time each time the page is displayed
+
+    # def is_displayed(self):
+    #     remaining_time = self.participant.vars['expiry_time_s{self.group.stage}'] - time()
+    #     print(f"DEBUG: remaining time stage {self.group.stage} = {remaining_time}")
+    #     return remaining_time > 0 # display only if there is time left
+
+    # def before_next_page(self):
+    #     # erasing file if still time on the clock, but round task finished
+    #     file_to_erase = "random_number_game/static/" + self.player.task_number_path + ".png"
+    #     print(f"DEBUG: file_to_erase = {file_to_erase}")
+    #     remove(file_to_erase)
+    #     self.player.set_correct_answer(self.player.transcription) # checking if the answer was correct
+
+    # def vars_for_template(self):
+    #     # getting expiry time
+    #     if round == 1:
+    #         expiry_time = Constants.timeout_practice
+    #     else:
+    #         expiry_time = Constants.timeout_stage
+
+    #     time_expired = expiry_time - time() <= 0)
+    #     print(f"DEBUG: time_expired = {time_expired}")
+        
+    #     # encoding the image that will be displayed
+    #     with open("random_number_game/static/" + self.player.task_number_path + ".png", "rb") as image_file:
+    #         self.player.encoded_image = b64encode(image_file.read()).decode('utf-8')
+
+    #     # using a var for template to display the encoded image
+    #     return {"encoded_image": self.player.encoded_image,
+    #             "time_expired": time_expired}
 
 
 class SettingAnswers(Page):

@@ -9,14 +9,50 @@ import math
 import otree.common
 import time
 import datetime
+
+from .text_to_png import writeText
 from django.utils.translation import gettext as _
-from .pages import writeText 
 from base64 import b64encode
 from os import remove
 
 doc = """
 This is a Lines Queueing project
 """
+
+# def writeText(text, fileName):
+#     """"
+#     This method generates the image version of an inputted text
+#     and saves it to fileName
+    
+#     Input: text to be transcripted into the image, name of the output img file
+#     Output: None
+#     """
+
+#     image = Image.open('random_number_game/background.png')
+#     image = image.resize((250, 50))
+#     image.save('random_number_game/background.png')
+#     draw = ImageDraw.Draw(image)
+#     font = ImageFont.truetype('random_number_game/Roboto-Regular.ttf', size=19)
+#     imageChars = 100
+#     numLines = len(text) / imageChars
+#     numLines = math.ceil(numLines)
+#     lines = []
+
+#     for i in range(numLines):
+#         if(imageChars * (i + 1) < len(text)):
+#             lines.append(text[imageChars * i : imageChars * (i+1)])
+#         else:
+#             lines.append(text[imageChars * i : len(text)])
+
+#     for i in range(numLines):
+#         (x, y) = (10, 20 * i)
+#         message = lines[i]
+#         print("Message is: ", message)
+#         color = 'rgb(0, 0, 0)' # black color
+#         draw.text((x, y), message, fill=color, font=font)
+
+#     image.save(fileName) # stores the image on a specified folder
+
 
 
 class Constants(BaseConstants):
@@ -191,10 +227,10 @@ class Player(BasePlayer):
     task_number_path = models.StringField() # path for img
     encoded_image = models.LongStringField() # image encoded in base64
     task_number_command = models.StringField() # command for displaying task_number image file
+    stage_round_number = models.IntegerField(initial=1)
     transcription = models.StringField()
     answer_is_correct = models.IntegerField()
     _correct_answers = models.IntegerField(initial=0)
-    _total_answers = models.IntegerField(initial=0)
     _gender_group_id = models.IntegerField()
     benchmark_stage_2 = models.IntegerField() # stores the best stage 2 score for individual comparisons 
     stage_2_winner = models.BooleanField() # True if player wins, False if not
@@ -266,25 +302,30 @@ class Player(BasePlayer):
         - Erasing the image displayed at beginning of the round
 
         Input:
-        - round number (Int), number of correct answers (Int), number of total answers (Int)
+        - transcription (string)
         Output:
-        - number of practice rounds (Int), encoded image (bs64), player in practice stage (Boolean),
-        transcription is correct (Boolean), 
+        - current stage round (Int), number of practice rounds (Int), encoded image (bs64), 
+        player in practice stage (Boolean)
         """
+        
+        # logging received data
+        print("received data", data)
+
         return_data = {} # dict with data to be used in live Decision page
         return_data["practice_rounds"] = Constants.num_rounds_practice
+        self.stage_round_number = int(data["stage_round_number"]) # updating the round number each time this func executed
 
         ######### generating the images
-        task_number = self.task_number_method()
+        self.task_number = self.task_number_method()
         id_in_subsession = self.id_in_subsession
-        round_number = data["round_number"]
         
         # name of random number image file
         task_number_path = "random_number_game/" + \
-                            f"task_number_player_{id_in_subsession}_{round_number}"
-        
+                            f"task_number_player_{id_in_subsession}_{self.stage_round_number}"
+        print("current task_number_path", task_number_path)
+
         # creating the img file
-        writeText(task_number, f'random_number_game/static/{task_number_path}.png')
+        writeText(self.task_number, f'random_number_game/static/{task_number_path}.png')
         
         # encoding the image that will be displayed in base64
         with open("random_number_game/static/" + task_number_path + ".png", "rb") as image_file:
@@ -299,20 +340,16 @@ class Player(BasePlayer):
         else:
             return_data["practice_stage"] = False
               
-        ######### checking if transcription is correct
-        print(f"DEBUG: self.task_number = {self.task_number}")
-        if str(task_number) == self.transcription: #TODO: fix for receiving transcription
-            return_data["correct_transcription"] = True
-        else:
-            return_data["correct_transcription"] = False
-
-        ######### storing the total number of correct answers and images displayed
-        self._correct_answers = data["correct_answers"]
-        self._total_answers = data["total_answers"]
-
+        ######### checking if transcription is correct and storing the total number of correct answers
+        print(f"DEBUG: task_number = {self.task_number}")
+        print(f"DEBUG: transcription = {data['transcription']}")
+        if str(self.task_number) == data["transcription"]:
+            self._correct_answers += 1
+        
         ######### erasing the image displayed at beginning of the round
-        if data["round_number"] > 1:
-            previous_round = round_number - 1
+        print("stage_round_number: ", self.stage_round_number)
+        if self.stage_round_number > 1:
+            previous_round = self.stage_round_number - 1
             previous_task_number_path = "random_number_game/" + \
                             f"task_number_player_{id_in_subsession}_{previous_round}"
             file_to_erase = "random_number_game/static/" + previous_task_number_path + ".png"
@@ -320,6 +357,8 @@ class Player(BasePlayer):
             remove(file_to_erase)
 
         ######### sending everything to the players in the live page
+        print("practice_rounds", return_data["practice_rounds"])
+        print("practice_stage", return_data["practice_stage"])
         return {0: return_data}
 
 
