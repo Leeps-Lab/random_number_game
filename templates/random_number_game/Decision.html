@@ -56,6 +56,9 @@
         
         // updating the image seen by the player
         base64Image = "data:image/png;base64,".concat(data["image"]);
+
+        // display the image in placeholder
+        displayBase64Image(imagePlaceholder, base64Image);
         
     }  
 
@@ -68,9 +71,6 @@
 
         // sending the current count of correct answers
         liveSend({"transcription": transcription, "stage_round_number": stage_round_number})      
-        
-        // display the image in placeholder
-        displayBase64Image(imagePlaceholder, base64Image);
     }
 
 </script>
