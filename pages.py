@@ -184,23 +184,18 @@ class Decision(Page):
     #     remove(file_to_erase)
     #     self.player.set_correct_answer(self.player.transcription) # checking if the answer was correct
 
-    # def vars_for_template(self):
-    #     # getting expiry time
-    #     if round == 1:
-    #         expiry_time = Constants.timeout_practice
-    #     else:
-    #         expiry_time = Constants.timeout_stage
-
-    #     time_expired = expiry_time - time() <= 0)
-    #     print(f"DEBUG: time_expired = {time_expired}")
+    def vars_for_template(self):
+        id_in_subsession = self.player.id_in_subsession
+        # encoding the image that will be displayed
+        # name of random number image file
+        task_number_path = "random_number_game/" + \
+                            f"task_number_player_{id_in_subsession}_{1}"
         
-    #     # encoding the image that will be displayed
-    #     with open("random_number_game/static/" + self.player.task_number_path + ".png", "rb") as image_file:
-    #         self.player.encoded_image = b64encode(image_file.read()).decode('utf-8')
+        with open("random_number_game/static/" + task_number_path + ".png", "rb") as image_file:
+            self.player.encoded_image = b64encode(image_file.read()).decode('utf-8')
 
-    #     # using a var for template to display the encoded image
-    #     return {"encoded_image": self.player.encoded_image,
-    #             "time_expired": time_expired}
+        # using a var for template to display the encoded image
+        return {"encoded_image": self.player.encoded_image}
 
 
 class SettingAnswers(Page):
