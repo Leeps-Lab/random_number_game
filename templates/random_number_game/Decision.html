@@ -44,7 +44,12 @@
     var imagePlaceholder = $('#image-placeholder');
     var base64Image = '';
 
-    // TODO: if {{ player.stage_round_number }} == 1, encode to base 64 and display
+    // if {{ player.stage_round_number }} == 1, encode to base 64 and display
+    // updating the image seen by the player
+    base64Image = "data:image/png;base64,".concat("{{encoded_image}}");
+
+    // display the image in placeholder
+    displayBase64Image(imagePlaceholder, base64Image);
 
     function liveRecv(data){
         if (data["practice_stage"]){
