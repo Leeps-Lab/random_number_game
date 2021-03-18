@@ -23,7 +23,7 @@ class Introduction(Page):
     
     def before_next_page(self):
         ##### creating first image of stage
-        task_number = self.player.task_number_method()
+        task_number = self.player.task_number
         id_in_subsession = self.player.id_in_subsession
         
         # name of random number image file
@@ -151,7 +151,7 @@ class Decision(Page):
 
     def before_next_page(self):    
         ##### creating first image of stage
-        task_number = self.player.task_number_method()
+        task_number = self.player.task_number
         id_in_subsession = self.player.id_in_subsession
         
         # name of random number image file

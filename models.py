@@ -144,6 +144,7 @@ class Subsession(BaseSubsession):
             else:
                 p._gender = "Female"
             print(f"DEBUG: Player's gender = {p._gender}")
+            p.task_number_assign()
 
         # setting practice and 1st stage for groups created by default
         print("DEBUG: executing stage assignment")
@@ -291,6 +292,9 @@ class Player(BasePlayer):
         label=_('3-р шатны сонголтынхоо шалтгааныг товч тайлбарла (богино хариулт)')
     )
 
+    def task_number_assign(self):
+        self.task_number = self.task_number_method()
+
     def live_sender(self, data):
         """
         This live method is in charge of:
@@ -314,6 +318,12 @@ class Player(BasePlayer):
         return_data = {} # dict with data to be used in live Decision page
         return_data["practice_rounds"] = Constants.num_rounds_practice
         self.stage_round_number = int(data["stage_round_number"]) # updating the round number each time this func executed
+
+        ######### checking if transcription is correct and storing the total number of correct answers
+        print(f"DEBUG: task_number = {self.task_number}")
+        print(f"DEBUG: transcription = {data['transcription']}")
+        if str(self.task_number) == data["transcription"]:
+            self._correct_answers += 1
 
         ######### generating the images
         self.task_number = self.task_number_method()
@@ -339,12 +349,6 @@ class Player(BasePlayer):
             return_data["practice_stage"] = True
         else:
             return_data["practice_stage"] = False
-              
-        ######### checking if transcription is correct and storing the total number of correct answers
-        print(f"DEBUG: task_number = {self.task_number}")
-        print(f"DEBUG: transcription = {data['transcription']}")
-        if str(self.task_number) == data["transcription"]:
-            self._correct_answers += 1
         
         ######### erasing the image displayed at beginning of the round
         print("stage_round_number: ", self.stage_round_number)
