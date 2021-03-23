@@ -14,6 +14,7 @@ from .text_to_png import writeText
 from django.utils.translation import gettext as _
 from base64 import b64encode
 from os import remove
+from os.path import exists
 
 doc = """
 This is a Lines Queueing project
@@ -156,9 +157,9 @@ class Subsession(BaseSubsession):
 class Group(BaseGroup):
    
     stage = models.IntegerField()
-    best_score_stage_2 = models.IntegerField() # highest number of correct answers per group in S2
+    # best_score_stage_2 = models.IntegerField() # highest number of correct answers per group in S2
 
-    def set_payoffs(self):
+    def set_payoffs_s1_s2(self):
         """
         Sets the payoffs for each player in a group for
         stages 1 and 2
@@ -174,49 +175,98 @@ class Group(BaseGroup):
                 player_in_group.payoff_stage_1 = player_in_group._correct_answers * 1500
 
         elif self.stage == 2:
-            best_player = None # Player Object, placeholder for best player
-            best_players = [] # List of ids in group, placeholder for best players (with same score)
-            self.best_score_stage_2 = 0 # Int, placeholder for best score
+            best_players_per_player = {} # dict of lists of best players for every player without considering themselves
+            # self.best_score_stage_2 = 0 # Int, placeholder for best score
             
             # evaluating who is the best player
             for player_in_group in self.get_players():
                 print(f"DEBUG: player correct answers = {player_in_group._correct_answers}")
-                if self.best_score_stage_2 <=  player_in_group._correct_answers:
-                    best_player = player_in_group
-                    self.best_score_stage_2 = best_player._correct_answers
-            print(f"DEBUG: best player = {best_player}")
-            print(f"DEBUG: best player correct answers = {best_player._correct_answers}")
+                # capturing the other players in his group
+                for other_player in player_in_group.get_others_in_group():
+                    # getting the best score of the other players in group
+                    if player_in_group.best_score_stage_2 <= other_player._correct_answers:
+                        # updating the best score
+                        best_player = other_player
+                        player_in_group.best_score_stage_2 = best_player._correct_answers
+                print(f"DEBUG: best player for p_{player_in_group.id_in_group} = {best_player}")
+                print(f"DEBUG: best player correct answers = {best_player._correct_answers}")
             
             # evaluating if more than one player obtained the best score
             for player_in_group in self.get_players():
-                if self.best_score_stage_2 ==  player_in_group._correct_answers:
-                    best_players.append(player_in_group.id_in_group)
-            print(f"DEBUG: list of best players = {best_players}")
+                best_players_per_player[f"best_for_p{player_in_group.id_in_group}"] = []
+                # storing the best players per player
+                for other_player in player_in_group.get_others_in_group():
+                    # append if other player's score == best score in group
+                    if player_in_group.best_score_stage_2 == player_in_group._correct_answers: 
+                        best_players_per_player[f"best_for_p{player_in_group.id_in_group}"].append(player_in_group.id_in_group)
+                print(f"DEBUG: dict of best players = {best_players_per_player}")
+                
+                # determining who won if more than 1 obtained the best score    
+                best_players = best_players_per_player[f"best_for_p{player_in_group.id_in_group}"]
+                best_other_player = None
 
-            # declaring who won if more than 1 obtained the best score
-            if len(best_players) > 1:
-                random.SystemRandom().shuffle(best_players) # randomizing the order
-                for player_in_group in self.get_players():
-                    if player_in_group.id_in_group == best_players[0]: # picking the winner at random
+                if len(best_players) > 1:
+                    random.SystemRandom().shuffle(best_players) # randomizing the order for picking the winner at random
+                    # storing best player object
+                    for player in self.get_players():
+                        if player.id_in_group == best_players[0]:
+                            best_other_player = player
+                
+                # checking if player is winner
+                if player_in_group.stage_2_winner == None:
+                    # when player is absolute winner
+                    if player_in_group._correct_answers > best_other_player._correct_answers: 
                         player_in_group.stage_2_winner = True
                         player_in_group.payoff_stage_2 = player_in_group._correct_answers * 6000
+                        
+                        # setting results for rest in round
+                        for other_player in player_in_group.get_others_in_group():
+                            other_player.stage_2_winner = False
+                            other_player.stage_2_winner = 0
+
+                    # if tie, choose at random
+                    elif player_in_group._correct_answers == best_other_player._correct_answers:
+                        win_prob = random.SystemRandom().randrange(1,101) # randrange is exclusive
+                        if win_prob <= 50:
+                            # setting results for player
+                            player_in_group.stage_2_winner = False
+                            player_in_group.payoff_stage_2 = 0
+                            
+                            # setting results for best player
+                            best_other_player.stage_2_winner = True
+                            best_other_player.payoff_stage_2 = best_other_player._correct_answers * 6000
+
+                            # setting results for rest in round
+                            for other_player in player_in_group.get_others_in_group():
+                                if other_player != best_other_player:
+                                    other_player.stage_2_winner = False
+                                    other_player.stage_2_winner = 0
+
+                        else:
+                            player_in_group.stage_2_winner = True
+                            player_in_group.payoff_stage_2 = player_in_group._correct_answers * 6000
+
+                            # setting results for losers in round
+                            for other_player in player_in_group.get_others_in_group():
+                                other_player.stage_2_winner = False
+                                other_player.stage_2_winner = 0
+
                     else:
                         player_in_group.stage_2_winner = False
                         player_in_group.payoff_stage_2 = 0
 
-            # declaring who won if only 1 player got best score
-            else:
-                best_player.stage_2_winner = True
-                for player_in_group in self.get_players():
-                    if player_in_group != best_player:
-                        player_in_group.stage_2_winner = False
-                        player_in_group.payoff_stage_2 = 0
-                    else:
-                        player_in_group.payoff_stage_2 = player_in_group._correct_answers * 6000
+                        # setting results for best player
+                        best_other_player.stage_2_winner = True
+                        best_other_player.payoff_stage_2 = best_other_player._correct_answers * 6000
 
-            # storing the best stage 2 score in each player obj
-            for player_in_group in self.get_players():
-                player_in_group.benchmark_stage_2 = self.best_score_stage_2
+                        # setting results for rest in round
+                        for other_player in player_in_group.get_others_in_group():
+                            if other_player != best_other_player:
+                                other_player.stage_2_winner = False
+                                other_player.stage_2_winner = 0
+                    
+                    # storing the others best score in stage 2        
+                    player_in_group.others_best_score_stage_2 = best_other_player._correct_answers
 
         else:
             print(f"DEBUG: Stage undefined value = {self.stage}")
@@ -238,6 +288,7 @@ class Player(BasePlayer):
     payoff_stage_1 = models.CurrencyField()
     payoff_stage_2 = models.CurrencyField()
     payoff_stage_3 = models.CurrencyField()
+    others_best_score_stage_2 = models.IntegerField(initial=0) # max correct answers for other players in player group (S2)
 
     _gender =  models.StringField(
         choices=[
@@ -358,7 +409,10 @@ class Player(BasePlayer):
                             f"task_number_player_{id_in_subsession}_{previous_round}"
             file_to_erase = "random_number_game/static/" + previous_task_number_path + ".png"
             print(f"DEBUG: file_to_erase = {file_to_erase}")
-            remove(file_to_erase)
+            if exists(file_to_erase):
+                remove(file_to_erase)
+            else:
+                print(f"Can not delete the file {file_to_erase} as it doesn't exists")
 
         ######### sending everything to the players in the live page
         print("practice_rounds", return_data["practice_rounds"])

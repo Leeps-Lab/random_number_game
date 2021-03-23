@@ -10,6 +10,7 @@ from django.utils.html import format_html
 
 from time import time
 from os import remove
+from os.path import exists
 from base64 import b64encode
 
   
@@ -162,15 +163,14 @@ class Decision(Page):
         # creating the img file
         writeText(task_number, f'random_number_game/static/{task_number_path}.png')
 
+    def get_timeout_seconds(self):
+        # getting expiry time according to the stage
+        if self.round_number == 1:
+            expiry_time = Constants.timeout_practice
+        else:
+            expiry_time = Constants.timeout_stage
 
-    # def get_timeout_seconds(self):
-    #     # getting expiry time
-    #     if self.round_number == 1:
-    #         expiry_time = Constants.timeout_practice
-    #     else:
-    #         expiry_time = Constants.timeout_stage
-
-    #     return expiry_time # updating the time each time the page is displayed
+        return expiry_time # updating the time each time the page is displayed
 
     # def is_displayed(self):
     #     remaining_time = self.participant.vars['expiry_time_s{self.group.stage}'] - time()
@@ -191,8 +191,11 @@ class Decision(Page):
         task_number_path = "random_number_game/" + \
                             f"task_number_player_{id_in_subsession}_{1}"
         
-        with open("random_number_game/static/" + task_number_path + ".png", "rb") as image_file:
-            self.player.encoded_image = b64encode(image_file.read()).decode('utf-8')
+        temp_image = "random_number_game/static/" + task_number_path + ".png"
+
+        if exists(temp_image):
+            with open(temp_image, "rb") as image_file:
+                self.player.encoded_image = b64encode(image_file.read()).decode('utf-8')
 
         # using a var for template to display the encoded image
         return {"encoded_image": self.player.encoded_image}
@@ -215,7 +218,7 @@ class SettingAnswers(Page):
 class ResultsWaitPage(WaitPage):
 
     def after_all_players_arrive(self):
-        self.group.set_payoffs()
+        self.group.set_payoffs_s1_s2()
 
     def is_displayed(self):
         return self.round_number > 1 & self.round_number < 4 # stage 1 and 2
