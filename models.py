@@ -161,7 +161,6 @@ class Group(BaseGroup):
                 # evaluating if more than one player obtained the best score
                 best_players_per_player[f"best_for_p{player_in_group.id_in_group}"] = []
                 # storing the best players per player
-                #TODO: Debug this change in conditions for best players 
                 for other_player in player_in_group.get_others_in_group():
                     # append if other player's score == best score in group
                     print(f"DEBUG: checking best players")
