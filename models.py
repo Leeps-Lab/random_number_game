@@ -20,51 +20,15 @@ doc = """
 This is a Lines Queueing project
 """
 
-# def writeText(text, fileName):
-#     """"
-#     This method generates the image version of an inputted text
-#     and saves it to fileName
-    
-#     Input: text to be transcripted into the image, name of the output img file
-#     Output: None
-#     """
-
-#     image = Image.open('random_number_game/background.png')
-#     image = image.resize((250, 50))
-#     image.save('random_number_game/background.png')
-#     draw = ImageDraw.Draw(image)
-#     font = ImageFont.truetype('random_number_game/Roboto-Regular.ttf', size=19)
-#     imageChars = 100
-#     numLines = len(text) / imageChars
-#     numLines = math.ceil(numLines)
-#     lines = []
-
-#     for i in range(numLines):
-#         if(imageChars * (i + 1) < len(text)):
-#             lines.append(text[imageChars * i : imageChars * (i+1)])
-#         else:
-#             lines.append(text[imageChars * i : len(text)])
-
-#     for i in range(numLines):
-#         (x, y) = (10, 20 * i)
-#         message = lines[i]
-#         print("Message is: ", message)
-#         color = 'rgb(0, 0, 0)' # black color
-#         draw.text((x, y), message, fill=color, font=font)
-
-#     image.save(fileName) # stores the image on a specified folder
-
-
-
 class Constants(BaseConstants):
     name_in_url = 'random_number_game'
     players_per_group = 4
     num_rounds = 4 # 1 round of repeated tasks per stage (practice + normal stages)
     num_rounds_practice = 2
     # timeout_practice = 20 # DEBUG timeout
-    timeout_practice = 60
-    # timeout_stage = 25 # DEBUG timeout
-    timeout_stage = 3*60
+    timeout_practice = 20
+    timeout_stage = 25 # DEBUG timeout
+    #timeout_stage = 3*60
 
 
 class Subsession(BaseSubsession):
@@ -180,37 +144,46 @@ class Group(BaseGroup):
             
             # evaluating who is the best player
             for player_in_group in self.get_players():
-                print(f"DEBUG: player correct answers = {player_in_group._correct_answers}")
+                print("-------------------------------------------------")
+                print(f"DEBUG: player {player_in_group.id_in_group} correct answers = {player_in_group._correct_answers}")
                 # capturing the other players in his group
                 for other_player in player_in_group.get_others_in_group():
+                    print(f"DEBUG: getting player {other_player.id_in_group}")
+                    print(f"DEBUG: player {other_player.id_in_group} score = {other_player._correct_answers}")
+                    print(f"DEBUG: current player other's best score = {player_in_group.others_best_score_stage_2}")
                     # getting the best score of the other players in group
-                    if player_in_group.best_score_stage_2 <= other_player._correct_answers:
+                    if player_in_group.others_best_score_stage_2 <= other_player._correct_answers:
                         # updating the best score
                         best_player = other_player
-                        player_in_group.best_score_stage_2 = best_player._correct_answers
-                print(f"DEBUG: best player for p_{player_in_group.id_in_group} = {best_player}")
-                print(f"DEBUG: best player correct answers = {best_player._correct_answers}")
+                        player_in_group.others_best_score_stage_2 = best_player._correct_answers
+                print(f"DEBUG: best player correct answers = {player_in_group.others_best_score_stage_2}")
             
-            # evaluating if more than one player obtained the best score
-            for player_in_group in self.get_players():
+                # evaluating if more than one player obtained the best score
                 best_players_per_player[f"best_for_p{player_in_group.id_in_group}"] = []
                 # storing the best players per player
+                #TODO: Debug this change in conditions for best players 
                 for other_player in player_in_group.get_others_in_group():
                     # append if other player's score == best score in group
-                    if player_in_group.best_score_stage_2 == player_in_group._correct_answers: 
-                        best_players_per_player[f"best_for_p{player_in_group.id_in_group}"].append(player_in_group.id_in_group)
+                    print(f"DEBUG: checking best players")
+                    print(f"DEBUG: getting player {other_player.id_in_group}")
+                    print(f"DEBUG: player {other_player.id_in_group} score = {other_player._correct_answers}")
+                    if other_player._correct_answers == player_in_group.others_best_score_stage_2: 
+                        best_players_per_player[f"best_for_p{player_in_group.id_in_group}"].append(other_player.id_in_group)
                 print(f"DEBUG: dict of best players = {best_players_per_player}")
                 
                 # determining who won if more than 1 obtained the best score    
                 best_players = best_players_per_player[f"best_for_p{player_in_group.id_in_group}"]
+    
                 best_other_player = None
 
                 if len(best_players) > 1:
                     random.SystemRandom().shuffle(best_players) # randomizing the order for picking the winner at random
-                    # storing best player object
-                    for player in self.get_players():
-                        if player.id_in_group == best_players[0]:
-                            best_other_player = player
+                
+                # tracking the other best player with ids
+                for player in self.get_players():
+                    # if id in group of player matches the first best player, it is the best
+                    if player.id_in_group == best_players[0]:
+                        best_other_player = player
                 
                 # checking if player is winner
                 if player_in_group.stage_2_winner == None:
@@ -283,7 +256,7 @@ class Player(BasePlayer):
     answer_is_correct = models.IntegerField()
     _correct_answers = models.IntegerField(initial=0)
     _gender_group_id = models.IntegerField()
-    benchmark_stage_2 = models.IntegerField() # stores the best stage 2 score for individual comparisons 
+    # benchmark_stage_2 = models.IntegerField() # stores the best stage 2 score for individual comparisons 
     stage_2_winner = models.BooleanField() # True if player wins, False if not
     payoff_stage_1 = models.CurrencyField()
     payoff_stage_2 = models.CurrencyField()
@@ -459,7 +432,7 @@ class Player(BasePlayer):
         elif self.in_round(4)._choice == 2: 
             print("DEBUG: paying in stage 3 according to stage 2")
             if self.in_round(Constants.num_rounds)._correct_answers \
-                > self.in_round(3).benchmark_stage_2:
+                > self.in_round(3).others_best_score_stage_2:
                 self.payoff_stage_3 = self._correct_answers * 6000
             else:
                 self.payoff_stage_3 = 0
