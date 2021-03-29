@@ -21,20 +21,7 @@ class Introduction(Page):
     def vars_for_template(self):
         print(f"DEBUG: treatment = {self.session.config['treatment']}")
         return {'treatment': self.session.config["treatment"]}
-    
-    def before_next_page(self):
-        ##### creating first image of stage
-        task_number = self.player.task_number
-        id_in_subsession = self.player.id_in_subsession
-        
-        # name of random number image file
-        task_number_path = "random_number_game/" + \
-                            f"task_number_player_{id_in_subsession}_{1}"
-        print("current task_number_path", task_number_path)
-
-        # creating the img file
-        writeText(task_number, f'random_number_game/static/{task_number_path}.png')
-
+              
 
 class GenderPage(Page):
     form_model = 'player'
@@ -150,19 +137,6 @@ class Decision(Page):
 
     live_method = "live_sender"
 
-    def before_next_page(self):    
-        ##### creating first image of stage
-        task_number = self.player.task_number
-        id_in_subsession = self.player.id_in_subsession
-        
-        # name of random number image file
-        task_number_path = "random_number_game/" + \
-                            f"task_number_player_{id_in_subsession}_{1}"
-        print("current task_number_path", task_number_path)
-
-        # creating the img file
-        writeText(task_number, f'random_number_game/static/{task_number_path}.png')
-
     def get_timeout_seconds(self):
         # getting expiry time according to the stage
         if self.round_number == 1:
@@ -185,7 +159,18 @@ class Decision(Page):
     #     self.player.set_correct_answer(self.player.transcription) # checking if the answer was correct
 
     def vars_for_template(self):
+        ##### creating first image of stage
+        task_number = self.player.task_number
         id_in_subsession = self.player.id_in_subsession
+        
+        # name of random number image file
+        task_number_path = "random_number_game/" + \
+                            f"task_number_player_{id_in_subsession}_{1}"
+        print("current task_number_path", task_number_path)
+
+        # creating the img file
+        writeText(task_number, f'random_number_game/static/{task_number_path}.png')
+        
         # encoding the image that will be displayed
         # name of random number image file
         task_number_path = "random_number_game/" + \
