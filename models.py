@@ -20,15 +20,17 @@ doc = """
 This is a Lines Queueing project
 """
 
+
+
 class Constants(BaseConstants):
     name_in_url = 'random_number_game'
     players_per_group = 4
     num_rounds = 4 # 1 round of repeated tasks per stage (practice + normal stages)
     num_rounds_practice = 2
     # timeout_practice = 20 # DEBUG timeout
-    timeout_practice = 20
-    timeout_stage = 25 # DEBUG timeout
-    #timeout_stage = 3*60
+    timeout_practice = 60
+    # timeout_stage = 25 # DEBUG timeout
+    timeout_stage = 3*60
 
 
 class Subsession(BaseSubsession):
@@ -109,7 +111,9 @@ class Subsession(BaseSubsession):
             else:
                 p._gender = "Female"
             print(f"DEBUG: Player's gender = {p._gender}")
-            p.task_number_assign()
+            num_string = "123456789"
+            sr = ''.join(random.sample(num_string, len(num_string)))
+            p.task_number = str(sr)
 
         # setting practice and 1st stage for groups created by default
         print("DEBUG: executing stage assignment")
@@ -315,9 +319,6 @@ class Player(BasePlayer):
         label=_('3-р шатны сонголтынхоо шалтгааныг товч тайлбарла (богино хариулт)')
     )
 
-    def task_number_assign(self):
-        self.task_number = self.task_number_method()
-
     def live_sender(self, data):
         """
         This live method is in charge of:
@@ -349,68 +350,22 @@ class Player(BasePlayer):
             self._correct_answers += 1
 
         ######### generating the images
-        self.task_number = self.task_number_method()
-        id_in_subsession = self.id_in_subsession
-        
-        # name of random number image file
-        task_number_path = "random_number_game/" + \
-                            f"task_number_player_{id_in_subsession}_{self.stage_round_number}"
-        print("current task_number_path", task_number_path)
-
-        # creating the img file
-        writeText(self.task_number, f'random_number_game/static/{task_number_path}.png')
-        
-        # encoding the image that will be displayed in base64
-        with open("random_number_game/static/" + task_number_path + ".png", "rb") as image_file:
-            encoded_image = b64encode(image_file.read()).decode('utf-8')
+        num_string = "123456789"
+        self.task_number = ''.join(random.sample(num_string, len(num_string)))
 
         # sending the image to the player
-        return_data["image"] = encoded_image
+        return_data["task_number"] = self.task_number
 
         ######### checking whether player in practice stage
         if self.round_number == 1: # 1st round = practice round
             return_data["practice_stage"] = True
         else:
             return_data["practice_stage"] = False
-        
-        ######### erasing the image displayed at beginning of the round
-        print("stage_round_number: ", self.stage_round_number)
-        if self.stage_round_number > 1:
-            previous_round = self.stage_round_number - 1
-            previous_task_number_path = "random_number_game/" + \
-                            f"task_number_player_{id_in_subsession}_{previous_round}"
-            file_to_erase = "random_number_game/static/" + previous_task_number_path + ".png"
-            print(f"DEBUG: file_to_erase = {file_to_erase}")
-            if exists(file_to_erase):
-                remove(file_to_erase)
-            else:
-                print(f"Can not delete the file {file_to_erase} as it doesn't exists")
 
         ######### sending everything to the players in the live page
         print("practice_rounds", return_data["practice_rounds"])
         print("practice_stage", return_data["practice_stage"])
-        return {0: return_data}
-
-
-    def task_number_method(self):
-        """
-        Creates a random 9-digit number as a string for transcription 
-        with unique digits
-
-        Input: None
-        Output: task number (string)
-        """
-
-        random_number = ""
-        one_to_nine = [num for num in range(1, 10)] # list with numbers from 1 to 9
-
-        random.SystemRandom().shuffle(one_to_nine) # shuffling the order of its items
-
-        # turning the list into a string
-        for num in one_to_nine:
-            random_number += str(num)
-
-        return random_number
+        return {self.id_in_group: return_data}
 
     def set_final_payoff(self):
         """
