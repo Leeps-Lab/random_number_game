@@ -21,12 +21,7 @@ class Introduction(Page):
     def vars_for_template(self):
         print(f"DEBUG: treatment = {self.session.config['treatment']}")
         return {'treatment': self.session.config["treatment"]}
-<<<<<<< HEAD
-        
-
-=======
               
->>>>>>> ff853f55612037050a3e37f8a3575428546016f4
 
 class GenderPage(Page):
     form_model = 'player'

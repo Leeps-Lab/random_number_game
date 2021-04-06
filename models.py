@@ -198,7 +198,7 @@ class Group(BaseGroup):
                         # setting results for rest in round
                         for other_player in player_in_group.get_others_in_group():
                             other_player.stage_2_winner = False
-                            other_player.stage_2_winner = 0
+                            other_player.payoff_stage_2 = 0
 
                     # if tie, choose at random
                     elif player_in_group._correct_answers == best_other_player._correct_answers:
@@ -216,7 +216,7 @@ class Group(BaseGroup):
                             for other_player in player_in_group.get_others_in_group():
                                 if other_player != best_other_player:
                                     other_player.stage_2_winner = False
-                                    other_player.stage_2_winner = 0
+                                    other_player.payoff_stage_2 = 0
 
                         else:
                             player_in_group.stage_2_winner = True
@@ -225,7 +225,7 @@ class Group(BaseGroup):
                             # setting results for losers in round
                             for other_player in player_in_group.get_others_in_group():
                                 other_player.stage_2_winner = False
-                                other_player.stage_2_winner = 0
+                                other_player.payoff_stage_2 = 0
 
                     else:
                         player_in_group.stage_2_winner = False
@@ -239,7 +239,7 @@ class Group(BaseGroup):
                         for other_player in player_in_group.get_others_in_group():
                             if other_player != best_other_player:
                                 other_player.stage_2_winner = False
-                                other_player.stage_2_winner = 0
+                                other_player.payoff_stage_2 = 0
                     
                     # storing the others best score in stage 2        
                     player_in_group.others_best_score_stage_2 = best_other_player._correct_answers
