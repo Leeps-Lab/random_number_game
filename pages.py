@@ -10,6 +10,7 @@ from django.utils.html import format_html
 
 from time import time
 from os import remove
+from os.path import exists
 from base64 import b64encode
 
   
@@ -85,7 +86,7 @@ class SettingAnswers(Page):
 class ResultsWaitPage(WaitPage):
 
     def after_all_players_arrive(self):
-        self.group.set_payoffs()
+        self.group.set_payoffs_s1_s2()
 
     def is_displayed(self):
         return self.round_number > 1 & self.round_number < 4 # stage 1 and 2
