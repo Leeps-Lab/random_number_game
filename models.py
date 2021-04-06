@@ -19,40 +19,6 @@ doc = """
 This is a Lines Queueing project
 """
 
-# def writeText(text, fileName):
-#     """"
-#     This method generates the image version of an inputted text
-#     and saves it to fileName
-    
-#     Input: text to be transcripted into the image, name of the output img file
-#     Output: None
-#     """
-
-#     image = Image.open('random_number_game/background.png')
-#     image = image.resize((250, 50))
-#     image.save('random_number_game/background.png')
-#     draw = ImageDraw.Draw(image)
-#     font = ImageFont.truetype('random_number_game/Roboto-Regular.ttf', size=19)
-#     imageChars = 100
-#     numLines = len(text) / imageChars
-#     numLines = math.ceil(numLines)
-#     lines = []
-
-#     for i in range(numLines):
-#         if(imageChars * (i + 1) < len(text)):
-#             lines.append(text[imageChars * i : imageChars * (i+1)])
-#         else:
-#             lines.append(text[imageChars * i : len(text)])
-
-#     for i in range(numLines):
-#         (x, y) = (10, 20 * i)
-#         message = lines[i]
-#         print("Message is: ", message)
-#         color = 'rgb(0, 0, 0)' # black color
-#         draw.text((x, y), message, fill=color, font=font)
-
-#     image.save(fileName) # stores the image on a specified folder
-
 
 
 class Constants(BaseConstants):
@@ -144,7 +110,9 @@ class Subsession(BaseSubsession):
             else:
                 p._gender = "Female"
             print(f"DEBUG: Player's gender = {p._gender}")
-            p.task_number_assign()
+            num_string = "123456789"
+            sr = ''.join(random.sample(num_string, len(num_string)))
+            p.task_number = str(sr)
 
         # setting practice and 1st stage for groups created by default
         print("DEBUG: executing stage assignment")
@@ -292,9 +260,6 @@ class Player(BasePlayer):
         label=_('3-р шатны сонголтынхоо шалтгааныг товч тайлбарла (богино хариулт)')
     )
 
-    def task_number_assign(self):
-        self.task_number = self.task_number_method()
-
     def live_sender(self, data):
         """
         This live method is in charge of:
@@ -326,65 +291,22 @@ class Player(BasePlayer):
             self._correct_answers += 1
 
         ######### generating the images
-        self.task_number = self.task_number_method()
-        id_in_subsession = self.id_in_subsession
-        
-        # name of random number image file
-        task_number_path = "random_number_game/" + \
-                            f"task_number_player_{id_in_subsession}_{self.stage_round_number}"
-        print("current task_number_path", task_number_path)
-
-        # creating the img file
-        writeText(self.task_number, f'random_number_game/static/{task_number_path}.png')
-        
-        # encoding the image that will be displayed in base64
-        with open("random_number_game/static/" + task_number_path + ".png", "rb") as image_file:
-            encoded_image = b64encode(image_file.read()).decode('utf-8')
+        num_string = "123456789"
+        self.task_number = ''.join(random.sample(num_string, len(num_string)))
 
         # sending the image to the player
-        return_data["image"] = encoded_image
+        return_data["task_number"] = self.task_number
 
         ######### checking whether player in practice stage
         if self.round_number == 1: # 1st round = practice round
             return_data["practice_stage"] = True
         else:
             return_data["practice_stage"] = False
-        
-        ######### erasing the image displayed at beginning of the round
-        print("stage_round_number: ", self.stage_round_number)
-        if self.stage_round_number > 1:
-            previous_round = self.stage_round_number - 1
-            previous_task_number_path = "random_number_game/" + \
-                            f"task_number_player_{id_in_subsession}_{previous_round}"
-            file_to_erase = "random_number_game/static/" + previous_task_number_path + ".png"
-            print(f"DEBUG: file_to_erase = {file_to_erase}")
-            remove(file_to_erase)
 
         ######### sending everything to the players in the live page
         print("practice_rounds", return_data["practice_rounds"])
         print("practice_stage", return_data["practice_stage"])
-        return {0: return_data}
-
-
-    def task_number_method(self):
-        """
-        Creates a random 9-digit number as a string for transcription 
-        with unique digits
-
-        Input: None
-        Output: task number (string)
-        """
-
-        random_number = ""
-        one_to_nine = [num for num in range(1, 10)] # list with numbers from 1 to 9
-
-        random.SystemRandom().shuffle(one_to_nine) # shuffling the order of its items
-
-        # turning the list into a string
-        for num in one_to_nine:
-            random_number += str(num)
-
-        return random_number
+        return {self.id_in_group: return_data}
 
     def set_final_payoff(self):
         """
