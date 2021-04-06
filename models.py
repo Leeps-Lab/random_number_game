@@ -26,9 +26,9 @@ class Constants(BaseConstants):
     num_rounds = 4 # 1 round of repeated tasks per stage (practice + normal stages)
     num_rounds_practice = 2
     # timeout_practice = 20 # DEBUG timeout
-    timeout_practice = 20
-    timeout_stage = 25 # DEBUG timeout
-    #timeout_stage = 3*60
+    timeout_practice = 60
+    # timeout_stage = 25 # DEBUG timeout
+    timeout_stage = 3*60
 
 
 class Subsession(BaseSubsession):
