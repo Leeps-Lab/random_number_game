@@ -21,8 +21,12 @@ class Introduction(Page):
     def vars_for_template(self):
         print(f"DEBUG: treatment = {self.session.config['treatment']}")
         return {'treatment': self.session.config["treatment"]}
+<<<<<<< HEAD
         
 
+=======
+              
+>>>>>>> ff853f55612037050a3e37f8a3575428546016f4
 
 class GenderPage(Page):
     form_model = 'player'
@@ -67,6 +71,14 @@ class Decision(Page):
         return {
             'task_number': self.player.task_number
         }
+    def get_timeout_seconds(self):
+        # getting expiry time according to the stage
+        if self.round_number == 1:
+            expiry_time = Constants.timeout_practice
+        else:
+            expiry_time = Constants.timeout_stage
+
+        return expiry_time # updating the time each time the page is displayed
 
 
 class SettingAnswers(Page):
